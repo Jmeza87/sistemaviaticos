@@ -21,7 +21,7 @@ export async function GET(request: Request, context: any) {
     const result = await pool.request()
       .input('TravelRequestId', travelRequestId)
       .query(`
-        SELECT Id, InvoiceNumber, Amount, AmountUSD, AmountBs, CreatedAt 
+        SELECT Id, InvoiceNumber, Amount, AmountUSD, AmountBs, Concept, CreatedAt 
         FROM Expenses 
         WHERE TravelRequestId = @TravelRequestId 
         ORDER BY CreatedAt ASC
@@ -42,7 +42,7 @@ export async function POST(request: Request, context: any) {
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const data = await request.json();
-    const { invoiceNumber, amount, amountUSD, amountBs } = data;
+    const { invoiceNumber, amount, amountUSD, amountBs, concept } = data;
 
     const pool = await getConnection();
     
@@ -58,12 +58,13 @@ export async function POST(request: Request, context: any) {
     await pool.request()
       .input('TravelRequestId', travelRequestId)
       .input('InvoiceNumber', invoiceNumber || '')
-      .input('Amount', amount)
-      .input('AmountUSD', amountUSD)
-      .input('AmountBs', amountBs)
+      .input('Amount', amount || 0)
+      .input('AmountUSD', amountUSD || 0)
+      .input('AmountBs', amountBs || 0)
+      .input('Concept', concept || '')
       .query(`
-        INSERT INTO Expenses (TravelRequestId, InvoiceNumber, Amount, AmountUSD, AmountBs)
-        VALUES (@TravelRequestId, @InvoiceNumber, @Amount, @AmountUSD, @AmountBs)
+        INSERT INTO Expenses (TravelRequestId, InvoiceNumber, Amount, AmountUSD, AmountBs, Concept)
+        VALUES (@TravelRequestId, @InvoiceNumber, @Amount, @AmountUSD, @AmountBs, @Concept)
       `);
 
     return NextResponse.json({ success: true });

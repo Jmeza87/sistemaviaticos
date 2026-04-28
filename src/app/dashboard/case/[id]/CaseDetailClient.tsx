@@ -17,6 +17,7 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     invoiceNumber: '',
+    concept: '',
     amountUSD: 0,
     amountBs: 0
   });
@@ -56,7 +57,7 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
         body: JSON.stringify(body)
       });
       if (res.ok) {
-        setFormData({ invoiceNumber: '', amountUSD: 0, amountBs: 0 });
+        setFormData({ invoiceNumber: '', concept: '', amountUSD: 0, amountBs: 0 });
         setShowForm(false);
         fetchData(); // reload
       } else {
@@ -121,6 +122,7 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
     // Table
     const tableData = expenses.map(e => [
       new Date(e.CreatedAt).toLocaleDateString(),
+      e.Concept || 'S/N',
       e.InvoiceNumber || 'S/N',
       `$${e.AmountUSD.toFixed(2)}`,
       `Bs ${e.AmountBs.toFixed(2)}`
@@ -128,7 +130,7 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
 
     autoTable(doc, {
       startY: 100,
-      head: [['Fecha', 'Nro Factura', 'Monto USD', 'Monto Bs']],
+      head: [['Fecha', 'Concepto', 'Nro Factura', 'Monto USD', 'Monto Bs']],
       body: tableData,
       theme: 'grid',
       headStyles: { fillColor: [43, 195, 198] } // Teal
@@ -236,6 +238,10 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
           <div style={{ padding: '1.5rem', backgroundColor: '#f9fafb', borderBottom: '1px solid var(--color-border)' }}>
             <form onSubmit={handleAddExpense} className="grid grid-cols-2">
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="form-label">Concepto del Gasto (Opcional)</label>
+                <input name="concept" value={formData.concept} onChange={handleChange} className="form-input" placeholder="Ej. Almuerzo, Taxi, Hotel..." />
+              </div>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label className="form-label">Nro Factura (Opcional)</label>
                 <input name="invoiceNumber" value={formData.invoiceNumber} onChange={handleChange} className="form-input" />
               </div>
@@ -260,6 +266,7 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
             <thead>
               <tr>
                 <th>Fecha</th>
+                <th>Concepto</th>
                 <th>Nro Factura</th>
                 <th>Monto USD</th>
                 <th>Monto Bs</th>
@@ -268,12 +275,13 @@ export default function CaseDetailClient({ caseId, userSession }: { caseId: stri
             <tbody>
               {expenses.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>No hay gastos registrados.</td>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>No hay gastos registrados.</td>
                 </tr>
               ) : (
                 expenses.map(exp => (
                   <tr key={exp.Id}>
                     <td>{new Date(exp.CreatedAt).toLocaleDateString()}</td>
+                    <td>{exp.Concept || '-'}</td>
                     <td>{exp.InvoiceNumber || '-'}</td>
                     <td>${exp.AmountUSD.toFixed(2)}</td>
                     <td>Bs {exp.AmountBs.toFixed(2)}</td>
